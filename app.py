@@ -431,12 +431,18 @@ def get_saidas_devolucoes_mes():
 
     return labels, {"saidas": saidas, "devolucoes": devolucoes}
 
+from flask import redirect, url_for  # (garanta que estas imports estão no topo)
+# from flask_login import current_user  # já existe no seu app.py; se não, mantenha
+
 @app.route("/")
-@login_required
-def index():
-    kpi = get_dashboard_kpis()
-    labels, series = get_saidas_devolucoes_mes()
-    return render_template("index.html", kpi=kpi, labels=labels, series=series)
+def root():
+    # Se já estiver logado, mostra o dashboard
+    if current_user.is_authenticated:
+        kpi = get_dashboard_kpis()
+        labels, series = get_saidas_devolucoes_mes()
+        return render_template("index.html", kpi=kpi, labels=labels, series=series)
+    # Senão, manda para a tela de login
+    return redirect(url_for("login"))
 
 # ============================================================
 # Usuários (admin)
