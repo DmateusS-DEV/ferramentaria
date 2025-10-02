@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Agregados — Tipos{% endblock %}
+{% block body_class %}page--agregados{% endblock %}
+{% block page_title %}Agregados{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Título / Resumo -->
+  <header class="page-head center-narrow">
+    <h1 class="page-title">AGREGADOS - PAINEL DE CONTROLE</h1>
+
+    {% if resumo %}
+      <div class="summary-row" style="justify-content:center;">
+        <span class="pill stat">Total: {{ resumo.total or 0 }}</span>
+        <span class="pill stat stat--ok">Disponíveis: {{ resumo.disponiveis or 0 }}</span>
+        <span class="pill stat stat--info">Aplicados: {{ resumo.aplicados or 0 }}</span>
+        <span class="pill stat stat--warn">Em reforma: {{ resumo.em_reforma or 0 }}</span>
+        <span class="pill stat stat--muted">Descartados: {{ resumo.descartados or 0 }}</span>
+      </div>
+    {% endif %}
+  </header>
+
+  <!-- Filtros -->
+  <form id="agregados-form"
+        class="filters center-narrow"
+        method="get"
+        action="{{ url_for('listar_agregados_tipos') }}">
+    <input class="input input--lg"
+           type="search"
+           name="q"
+           value="{{ filtros.q or '' }}"
+           placeholder="Buscar por descrição / aplicação"
+           aria-label="Buscar por descrição ou aplicação">
+    <select class="input input--lg" name="status" aria-label="Filtrar por status">
+      <option value="">Status (todos)</option>
+      {% for s in ["Disponível","Aplicado","Em reforma","Descartado"] %}
+        <option value="{{ s }}" {{ 'selected' if filtros.status==s else '' }}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </form>
+
+  <!-- Ações -->
+  <div class="actions center-narrow">
+    <button class="btn btn--primary btn--equal" type="submit" form="agregados-form">Filtrar</button>
+    <a class="btn btn--primary btn--equal" href="{{ url_for('listar_agregados_tipos') }}">Limpar</a>
+    <a class="btn btn--primary btn--equal"
+       href="{{ url_for('exportar_agregados_tipos_excel', q=filtros.q, status=filtros.status) }}">
+      Exportar Excel
+    </a>
+    <a class="btn btn--primary btn--equal" href="{{ url_for('novo_agregado') }}">+ Novo agregado</a>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table-wrap card-surface center-narrow">
+    <table class="table">
+      <colgroup>
+        <col style="width:120px">
+        <col>
+        <col style="width:22%">
+        <col style="width:100px">
+        <col style="width:100px">
+        <col style="width:130px">
+      </colgroup>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Descrição</th>
+          <th>Aplicação</th>
+          <th>Mínimo</th>
+          <th>Máximo</th>
+          <th>Disponíveis</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if tipos %}
+          {% for t in tipos %}
+            <tr>
+              <td class="table-actions">
+                <a class="btn btn--xs"
+                   href="{{ url_for('listar_agregados_itens', nome=t.nome, aplicacao=t.aplicacao) }}">
+                  Ver itens
+                </a>
+              </td>
+              <td>{{ t.nome }}</td>
+              <td>{{ t.aplicacao or '—' }}</td>
+              <td>{{ t.estoque_min if t.estoque_min is not none else '—' }}</td>
+              <td>{{ t.estoque_max if t.estoque_max is not none else '—' }}</td>
+              <td><span class="badge badge--ok">{{ t.disponiveis or 0 }}</span></td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="6" class="empty">Nenhum tipo encontrado.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Voltar -->
+  <div class="center-narrow" style="display:flex;justify-content:flex-end;margin-top:16px;">
+    <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar</a>
+  </div>
+
+</div>
+{% endblock %}

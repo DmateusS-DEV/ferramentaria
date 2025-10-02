@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Editar Usuário{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<section class="edit-shell">
+  <header class="edit-header">
+    <h1 class="page-title" style="text-align:center;">EDITAR USUÁRIO</h1>
+    <div class="page-subtitle" style="text-align:center;">
+      Atualizar dados.
+    </div>
+  </header>
+
+  <form class="edit-form center-narrow" method="post"
+        action="{{ url_for('editar_usuario', id_usuario=usuario.id_usuario) }}">
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="nome">Nome</label>
+        <input id="nome" name="nome" class="input" value="{{ usuario.nome }}" required>
+      </div>
+
+      <div class="form-field">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" class="input" value="{{ usuario.email }}" required>
+      </div>
+
+      <div class="form-field">
+        <label for="perfil">Perfil</label>
+        <select id="perfil" name="perfil" class="input" required>
+          <option value="usuario" {{ 'selected' if usuario.perfil=='usuario' }}>Usuário</option>
+          <option value="admin"   {{ 'selected' if usuario.perfil=='admin' }}>Admin</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="centro_custo">Centro de custo</label>
+        <input id="centro_custo" name="centro_custo" class="input"
+               value="{{ usuario.centro_custo or '' }}">
+      </div>
+
+      <div class="form-field">
+        <label for="funcao">Função</label>
+        <input id="funcao" name="funcao" class="input"
+               value="{{ usuario.funcao or '' }}">
+      </div>
+
+      <div class="form-field">
+        <label for="senha">Nova senha (opcional)</label>
+        <input id="senha" name="senha" type="password" class="input"
+               autocomplete="new-password" placeholder="Deixe em branco para manter a atual">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--outline" href="{{ url_for('listar_usuarios') }}">← Voltar</a>
+      <button class="btn btn--primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+# Framework principal
+flask
+
+# Autenticação e segurança
+flask-bcrypt
+flask-login
+
+# Variáveis de ambiente (.env)
+python-dotenv
+
+# Banco de dados MySQL
+mysql-connector-python
+
+# Manipulação e análise de dados
+pandas
+
+# (Opcional) Debug no Flask
+flask-debugtoolbar
+
+# (Opcional) Requisições HTTP
+requests

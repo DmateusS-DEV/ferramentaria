@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Novo Usuário{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<section class="edit-shell">
+  <header class="edit-header">
+    <h1 class="page-title" style="text-align:center;">NOVO USUÁRIO</h1>
+    <div class="page-subtitle" style="text-align:center;">Preencha os dados de acesso.</div>
+  </header>
+
+  <form class="edit-form center-narrow" method="post" action="{{ url_for('novo_usuario') }}">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="nome">Nome</label>
+        <input id="nome" name="nome" class="input" required>
+      </div>
+
+      <div class="form-field">
+        <label for="email">E-mail</label>
+        <input id="email" name="email" type="email" class="input" required>
+      </div>
+
+      <div class="form-field">
+        <label for="senha">Senha</label>
+        <input id="senha" name="senha" type="password" class="input" autocomplete="new-password" required>
+      </div>
+
+      <div class="form-field">
+        <label for="perfil">Perfil</label>
+        <select id="perfil" name="perfil" class="input" required>
+          <option value="usuario" selected>Usuário</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <!-- Agora estes dois NÃO ocupam a largura total; ficam do tamanho dos demais -->
+      <div class="form-field">
+        <label for="centro_custo">Centro de custo</label>
+        <input id="centro_custo" name="centro_custo" class="input">
+      </div>
+
+      <div class="form-field">
+        <label for="funcao">Função</label>
+        <input id="funcao" name="funcao" class="input">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--outline" href="{{ url_for('listar_usuarios') }}">← Voltar</a>
+      <button class="btn btn--primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

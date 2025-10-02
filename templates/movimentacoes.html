@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Movimentações</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <h1>Movimentações</h1>
+
+  <nav>
+    <a href="{{ url_for('logout') }}">Sair</a> |
+    <a href="{{ url_for('index') }}">Página Inicial</a> |
+    <a href="{{ url_for('nova_movimentacao') }}">➕ Nova Movimentação</a>
+  </nav>
+
+  <hr>
+
+  <!-- FILTROS -->
+  <form method="POST" action="{{ url_for('listar_movimentacoes') }}">
+    <label>Data início:</label>
+    <input type="date" name="data_inicio" value="{{ filtros.data_inicio }}">
+
+    <label>Data fim:</label>
+    <input type="date" name="data_fim" value="{{ filtros.data_fim }}">
+
+    <label>Tipo:</label>
+    <select name="tipo">
+      <option value="">-- Todos --</option>
+      {% for t in ['entrada','saida','devolucao','emprestimo','reforma','calibracao','inventario'] %}
+        <option value="{{ t }}" {% if filtros.tipo == t %}selected{% endif %}>{{ t|capitalize }}</option>
+      {% endfor %}
+    </select>
+
+    <label>Agregado:</label>
+    <select name="id_agregado">
+      <option value="">-- Todos --</option>
+      {% for a in agregados %}
+        <option value="{{ a.id_agregado }}" {% if filtros.id_agregado == a.id_agregado|string %}selected{% endif %}>
+          {{ a.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Ferramenta:</label>
+    <select name="id_ferramenta">
+      <option value="">-- Todas --</option>
+      {% for f in ferramentas %}
+        <option value="{{ f.id_ferramenta }}" {% if filtros.id_ferramenta == f.id_ferramenta|string %}selected{% endif %}>
+          {{ f.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label>Usuário:</label>
+    <select name="id_usuario">
+      <option value="">-- Todos --</option>
+      {% for u in usuarios %}
+        <option value="{{ u.id_usuario }}" {% if filtros.id_usuario == u.id_usuario|string %}selected{% endif %}>
+          {{ u.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <button type="submit">Filtrar</button>
+  </form>
+
+  <!-- ÚNICO botão de exportar, reenviando os filtros atuais -->
+  <form method="POST" action="{{ url_for('exportar_movimentacoes_excel') }}" style="margin-top:8px;">
+    <input type="hidden" name="data_inicio"   value="{{ filtros.data_inicio }}">
+    <input type="hidden" name="data_fim"      value="{{ filtros.data_fim }}">
+    <input type="hidden" name="tipo"          value="{{ filtros.tipo }}">
+    <input type="hidden" name="id_agregado"   value="{{ filtros.id_agregado }}">
+    <input type="hidden" name="id_ferramenta" value="{{ filtros.id_ferramenta }}">
+    <input type="hidden" name="id_usuario"    value="{{ filtros.id_usuario }}">
+    <button type="submit">📥 Exportar para Excel</button>
+  </form>
+
+  <hr>
+
+  <!-- TABELA -->
+  <table border="1" cellpadding="5">
+    <tr>
+      <th>ID</th>
+      <th>Tipo</th>
+      <th>Item</th>
+      <th>Quantidade</th>
+      <th>Usuário</th>
+      <th>Data</th>
+      <th>Observação</th>
+    </tr>
+    {% for m in movimentacoes %}
+      <tr>
+        <td>{{ m.id_mov }}</td>
+        <td>{{ m.tipo }}</td>
+        <td>
+          {% if m.agregado %} Agregado: {{ m.agregado }}
+          {% elif m.ferramenta %} Ferramenta: {{ m.ferramenta }}
+          {% else %} --- {% endif %}
+        </td>
+        <td>{{ m.quantidade }}</td>
+        <td>{{ m.usuario }}</td>
+        <td>{{ m.data_mov.strftime('%d/%m/%Y %H:%M') if m.data_mov.__class__.__name__ != 'str' else m.data_mov }}</td>
+        <td>{{ m.observacao or "" }}</td>
+      </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>

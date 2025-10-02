@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Ferramentas{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+
+<!-- Título -->
+<header class="hero-title" style="text-align:center; margin: 0 auto 10px;">
+  <h1 style="color: var(--azul); font-weight: 800; letter-spacing:.2px; margin:0;">
+    FERRAMENTAS - PAINEL DE CONTROLE
+  </h1>
+</header>
+
+<!-- Barra de filtros + ações -->
+<section class="container card-surface">
+  <form class="toolbar" method="get" action="{{ url_for('listar_ferramentas') }}">
+    <input class="input" type="search" name="q" value="{{ filtros.q }}"
+           placeholder="Buscar por nome / endereço de estoque">
+
+    <select class="input" name="status">
+      <option value="">Status (todos)</option>
+      {% for s in ["Disponível","Emprestada","Calibração","Descartada"] %}
+        <option value="{{ s }}" {{ "selected" if filtros.status==s else "" }}>{{ s }}</option>
+      {% endfor %}
+    </select>
+
+    <button class="btn btn--primary" type="submit">Filtrar</button>
+    <a class="btn btn--primary" href="{{ url_for('listar_ferramentas') }}">Limpar</a>
+
+    <a class="btn btn--primary"
+       href="{{ url_for('exportar_ferramentas_excel', q=filtros.q, status=filtros.status) }}">
+      Exportar Excel
+    </a>
+
+    <div class="spacer"></div>
+
+    <a class="btn btn--primary" href="{{ url_for('nova_ferramenta') }}">+ Nova ferramenta</a>
+  </form>
+
+  <!-- Tabela -->
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th style="width:120px">Especial</th>
+          <th>Endereço de estoque</th>
+          <th style="width:150px">Status</th>
+          <th style="width:200px">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if ferramentas %}
+          {% for f in ferramentas %}
+            <tr>
+              <td>{{ f.nome }}</td>
+              <td>
+                {% if f.especial %}<span class="badge badge--info">Sim</span>
+                {% else %}<span class="badge badge--muted">Não</span>{% endif %}
+              </td>
+              <td>{{ f.endereco_estoque or "—" }}</td>
+              <td>
+                <span class="badge
+                  {% if f.status=='Disponível' %}badge--ok
+                  {% elif f.status in ['Emprestada'] %}badge--info
+                  {% elif f.status=='Calibração' %}badge--warn
+                  {% elif f.status=='Descartada' %}badge--muted
+                  {% else %}badge--muted{% endif %}">
+                  {{ f.status or '—' }}
+                </span>
+              </td>
+              <td class="table-actions">
+                <div class="action-grid">
+               <!-- Emprestar ferramenta -->
+<a class="btn-icon" title="Emprestar" aria-label="Emprestar"
+   href="{{ url_for('nova_movimentacao', is_tool=True, tipo='emprestimo', id_ferramenta=f.id_ferramenta) }}">↗️</a>
+
+<!-- Devolver ferramenta -->
+<a class="btn-icon" title="Devolver" aria-label="Devolver"
+   href="{{ url_for('nova_movimentacao', is_tool=True, tipo='devolucao_ferramenta', id_ferramenta=f.id_ferramenta) }}">↩️</a>
+
+                  {# Editar #}
+                  <a class="btn-icon" title="Editar" aria-label="Editar"
+                     href="{{ url_for('editar_ferramenta', id_ferramenta=f.id_ferramenta) }}">✏️</a>
+
+                  {# Descartar (POST) #}
+                  <form method="post"
+                        action="{{ url_for('descartar_ferramenta', id_ferramenta=f.id_ferramenta) }}"
+                        onsubmit="return confirm('Tem certeza que deseja DESCARTAR esta ferramenta?');">
+                    <button class="btn-icon btn-icon--danger" title="Descartar" aria-label="Descartar">🗑️</button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="5" class="empty">Nenhuma ferramenta encontrada.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Botões de rodapé -->
+  <div class="toolbar" style="justify-content:flex-end; margin-top:12px;">
+    <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar</a>
+  </div>
+</section>
+
+{% endblock %}

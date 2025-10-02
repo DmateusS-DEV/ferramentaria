@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>{% block title %}Ferramentaria{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="{% block body_class %}{% endblock %}">
+
+  <!-- APP BAR -->
+  <header class="topbar">
+    <div class="topbar__left">
+      <a href="{{ url_for('index') }}" style="color:#fff;text-decoration:none;">
+        {% block page_title %}Dashboard{% endblock %}
+      </a>
+    </div>
+
+    <div class="topbar__right">
+      {% if current_user.is_authenticated %}
+
+        <!-- Ícone/atalho para "Meu perfil" -->
+        <a href="{{ url_for('perfil') }}"
+           class="topbar__avatar"
+           title="Meu perfil" aria-label="Meu perfil"
+           style="width:36px;height:36px;border-radius:999px;display:inline-grid;place-items:center;margin-right:8px;color:#fff;text-decoration:none;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+            <path d="M12 12c2.761 0 5-2.462 5-5.5S14.761 1 12 1 7 3.462 7 6.5 9.239 12 12 12zm0 2c-4.418 0-8 2.91-8 6.5V22h16v-1.5c0-3.59-3.582-6.5-8-6.5z"/>
+          </svg>
+        </a>
+
+        <!-- Nome e perfil (sem links extras) -->
+        <div class="topbar__user" style="margin-right:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px;line-height:1.1;">
+          <span class="topbar__user-name" style="font-weight:700;">{{ current_user.nome }}</span>
+          <span class="topbar__user-role" style="opacity:.9;font-size:.9rem;">{{ current_user.perfil|capitalize }}</span>
+        </div>
+
+        {# Removidos: link "Pergunta de segurança" e botão "Sair" #}
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- CONTEÚDO -->
+  <main class="content">
+    {# Mensagens flash #}
+    {% with messages = get_flashed_messages(with_categories=True) %}
+      {% if messages %}
+        <div class="container" style="max-width:1100px;margin:8px auto 0;padding:0 12px;">
+          {% for category, message in messages %}
+            {% set flash_colors = {
+              'success':'#1e7f4c','ok':'#1e7f4c',
+              'info':'#1f5f99',
+              'warning':'#b7791f','warn':'#b7791f',
+              'danger':'#a53b3b','error':'#a53b3b'
+            } %}
+            {% set flash_color = flash_colors.get(category, '#c7d4e6') %}
+
+            <div class="card" style="padding:10px 12px;margin:6px 0;border-left:4px solid {{ flash_color }};">
+              {{ message }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- RODAPÉ -->
+  <footer class="footer">
+    Desenvolvido por: Mateus Araújo
+  </footer>
+
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

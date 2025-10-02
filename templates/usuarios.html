@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Gerenciar Usuários{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <header class="page-head center-narrow" style="margin-top:12px;">
+    <h1 class="page-title" style="text-align:center;">GERENCIAR USUÁRIOS</h1>
+    <div class="page-subtitle" style="text-align:center;">Crie, edite e remova acessos do sistema.</div>
+  </header>
+
+  <div class="actions center-narrow" style="display:flex;justify-content:flex-end;gap:12px;margin:0 auto 12px;">
+    <a class="btn btn--primary" href="{{ url_for('novo_usuario') }}">+ Novo usuário</a>
+  </div>
+
+  <div class="table-wrap card-surface center-narrow">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th style="width:140px;">Perfil</th>
+          <th style="width:180px;">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if usuarios %}
+          {% for u in usuarios %}
+          <tr>
+            <td>{{ u.nome }}</td>
+            <td>{{ u.email }}</td>
+            <td>
+              <span class="badge {% if u.perfil=='admin' %}badge--info{% else %}badge--ok{% endif %}">
+                {{ u.perfil|capitalize }}
+              </span>
+            </td>
+            <td class="table-actions">
+              <a class="btn btn--xs" href="{{ url_for('editar_usuario', id_usuario=u.id_usuario) }}">✏️ Editar</a>
+              {% if current_user.id != u.id_usuario %}
+                <a class="btn btn--xs btn--danger js-del"
+                   href="{{ url_for('excluir_usuario', id_usuario=u.id_usuario) }}">🗑️ Excluir</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="4" class="empty">Nenhum usuário cadastrado.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="center-narrow" style="display:flex;justify-content:flex-end;margin-top:16px;">
+    <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar</a>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Confirmação simples para exclusão
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('.js-del');
+    if (a) {
+      if (!confirm('Tem certeza que deseja excluir este usuário?')) {
+        e.preventDefault();
+      }
+    }
+  });
+</script>
+{% endblock %}

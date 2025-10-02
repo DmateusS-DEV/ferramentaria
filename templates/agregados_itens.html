@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Agregados — Itens do tipo{% endblock %}
+{% block body_class %}page--agregados{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Cabeçalho -->
+  <header class="center-narrow" style="margin:16px auto 14px;">
+    <h1 class="page-title" style="text-align:center;color:var(--azul);font-weight:800;letter-spacing:.2px;margin:0;">
+      AGREGADOS DO TIPO:
+    </h1>
+    <div style="text-align:center;margin-top:6px;font-size:1.15rem;font-weight:800;color:#1f2a37;">
+      {{ nome }}{% if aplicacao %} — {{ aplicacao }}{% endif %}
+    </div>
+
+    {% set disp = (itens | selectattr('status','equalto','Disponível') | list | length) %}
+    {% set apl  = (itens | selectattr('status','equalto','Aplicado')   | list | length) %}
+    {% set ref  = (itens | selectattr('status','equalto','Em reforma') | list | length) %}
+    {% set desc = (itens | selectattr('status','equalto','Descartado') | list | length) %}
+    <div class="summary-row" style="justify-content:center;">
+      <span class="pill stat stat--ok">Disponíveis: {{ disp }}</span>
+      <span class="pill stat stat--info">Aplicados: {{ apl }}</span>
+      <span class="pill stat stat--warn">Em reforma: {{ ref }}</span>
+      <span class="pill stat stat--muted">Descartados: {{ desc }}</span>
+    </div>
+  </header>
+
+  <!-- Tabela -->
+  <div class="table-wrap card-surface center-narrow">
+    <table class="table items-table">
+      <colgroup>
+        <col style="width:110px;">  {# TAG #}
+        <col style="width:22%;">    {# Descrição #}
+        <col style="width:18%;">    {# Aplicação #}
+        <col style="width:12%;">    {# Status #}
+        <col style="width:14%;">    {# Localização #}
+        <col style="width:18%;">    {# Aplicado em #}
+        <col style="width:180px;">  {# Ações #}
+      </colgroup>
+      <thead>
+        <tr>
+          <th>TAG</th>
+          <th>Descrição</th>
+          <th>Aplicação</th>
+          <th>Status</th>
+          <th>Localização</th>
+          <th>Aplicado&nbsp;em</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if itens %}
+          {% for i in itens %}
+            <tr>
+              <td>
+                {% if i.tag %}
+                  <span class="badge badge--info">{{ i.tag }}</span>
+                {% else %}—{% endif %}
+              </td>
+              <td>{{ i.nome }}</td>
+              <td>{{ i.aplicacao or '—' }}</td>
+              <td>
+                {% set st = i.status or '—' %}
+                <span class="badge
+                  {% if st == 'Disponível' %}badge--ok
+                  {% elif st == 'Aplicado' %}badge--info
+                  {% elif st == 'Em reforma' %}badge--warn
+                  {% else %}badge--muted{% endif %}">
+                  {{ st }}
+                </span>
+              </td>
+              <td>{{ i.localizacao or '—' }}</td>
+              <td>{{ i.aplicado_em or '—' }}</td>
+              <td class="table-actions">
+                <div class="action-grid">
+                  <!-- Editar -->
+                  <a class="btn-icon" title="Editar" aria-label="Editar"
+                     href="{{ url_for('editar_agregado', id_agregado=i.id_agregado) }}">✏️</a>
+
+                  <!-- Saída -->
+                  <a class="btn-icon" title="Saída" aria-label="Saída"
+                     href="{{ url_for('nova_movimentacao',
+                                      tipo='saida',
+                                      id_agregado=i.id_agregado,
+                                      g_nome=nome,
+                                      g_aplicacao=aplicacao,
+                                      next=request.full_path) }}">↗️</a>
+
+                  <!-- Devolução -->
+                  <a class="btn-icon" title="Devolução" aria-label="Devolução"
+                     href="{{ url_for('nova_movimentacao',
+                                      tipo='devolucao',
+                                      id_agregado=i.id_agregado,
+                                      g_nome=nome,
+                                      g_aplicacao=aplicacao,
+                                      next=request.full_path) }}">↩️</a>
+
+                  <!-- Reforma -->
+                  <a class="btn-icon" title="Reforma" aria-label="Reforma"
+                     href="{{ url_for('nova_movimentacao',
+                                      tipo='reforma',
+                                      id_agregado=i.id_agregado,
+                                      g_nome=nome,
+                                      g_aplicacao=aplicacao,
+                                      next=request.full_path) }}">🛠️</a>
+
+                  <!-- Descartar (abre modal para POST) -->
+                  <button type="button"
+                          class="btn-icon btn-icon--danger js-open-discard"
+                          title="Descartar" aria-label="Descartar"
+                          data-action="{{ url_for('descartar_agregado', id_agregado=i.id_agregado) }}">🗑️</button>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="7" class="empty">Nenhum item para este tipo.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Voltar -->
+  <div class="center-narrow" style="display:flex;justify-content:flex-end;margin-top:16px;">
+    <a class="btn btn--outline" href="{{ url_for('listar_agregados_tipos') }}">← Voltar aos tipos</a>
+  </div>
+
+  {# ===== Modal de confirmação de descarte ===== #}
+  <div id="confirm-discard" class="modal" role="dialog" aria-modal="true" aria-labelledby="discard-title">
+    <div class="modal__dialog">
+      <div id="discard-title" class="modal__title">Confirmar descarte</div>
+      <p>Esta ação marcará o item como <strong>Descartado</strong> e será registrada nos relatórios.</p>
+      <div class="modal__actions">
+        <button class="btn btn--outline js-cancel">Cancelar</button>
+        <form id="discard-form" method="post" style="display:inline;">
+          <button type="submit" class="btn btn--danger">Descartar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.modal{ position:fixed; inset:0; background:rgba(0,0,0,.45);
+        display:none; align-items:center; justify-content:center; z-index:2000; }
+.modal.is-open{ display:flex; }
+.modal__dialog{ background:#fff; border-radius:14px; width:420px; max-width:90vw;
+                padding:18px; box-shadow:0 20px 40px rgba(0,0,0,.25); }
+.modal__title{ font-weight:800; color:var(--azul); font-size:1.1rem; margin-bottom:8px; }
+.modal__actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  const modal  = document.getElementById('confirm-discard');
+  const form   = document.getElementById('discard-form');
+  const cancel = modal ? modal.querySelector('.js-cancel') : null;
+
+  function openModal(postUrl){
+    if(!modal || !form) return;
+    // adiciona ?next=rota atual (para voltar ao mesmo lugar após POST)
+    const url = new URL(postUrl, window.location.origin);
+    const next = window.location.pathname + window.location.search;
+    url.searchParams.set('next', next);
+    form.action = url.pathname + url.search;
+    modal.classList.add('is-open');
+  }
+
+  document.querySelectorAll('.js-open-discard').forEach(btn => {
+    btn.addEventListener('click', function(ev){
+      ev.preventDefault();
+      const postUrl = btn.dataset.action;
+      if(!postUrl){ alert('Ação inválida.'); return; }
+      openModal(postUrl);
+    });
+  });
+
+  if (cancel){
+    cancel.addEventListener('click', function(ev){
+      ev.preventDefault();
+      modal.classList.remove('is-open');
+      form.action = '';
+    });
+  }
+
+  if (modal){
+    modal.addEventListener('click', function(ev){
+      if(ev.target === modal){
+        modal.classList.remove('is-open');
+        form.action = '';
+      }
+    });
+  }
+});
+</script>
+{% endblock %}

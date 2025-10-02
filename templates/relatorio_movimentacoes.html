@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Relatórios — Movimentações{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+{% set sel = request.values %}
+{% set t = sel.get('tipo','') %}
+
+<header class="hero-title" style="text-align:center; margin: 0 auto 14px;">
+  <h1 style="color: var(--azul); font-weight: 800; letter-spacing:.2px; margin:0;">
+    RELATÓRIO DE MOVIMENTAÇÕES
+  </h1>
+</header>
+
+<section class="container card-surface">
+
+  {# ---------- FILTROS (form principal) ---------- #}
+  <form method="post" class="toolbar" action="{{ url_for('relatorio_movimentacoes') }}">
+    <input class="input" type="date" name="data_inicio" value="{{ sel.get('data_inicio','') }}" placeholder="Data início">
+    <input class="input" type="date" name="data_fim"    value="{{ sel.get('data_fim','') }}"    placeholder="Data fim">
+
+    <select name="tipo" class="input">
+      <option value="">Todos os tipos</option>
+      <optgroup label="Agregados">
+        <option value="saida"     {{ 'selected' if t=='saida' }}>Saída</option>
+        <option value="devolucao" {{ 'selected' if t=='devolucao' }}>Devolução</option>
+        <option value="reforma"   {{ 'selected' if t=='reforma' }}>Reforma</option>
+        <option value="descarte"  {{ 'selected' if t=='descarte' }}>Descarte</option>
+      </optgroup>
+      <optgroup label="Ferramentas">
+        <option value="emprestimo"           {{ 'selected' if t=='emprestimo' }}>Empréstimo</option>
+        <option value="devolucao_ferramenta" {{ 'selected' if t=='devolucao_ferramenta' }}>Devolução</option>
+      </optgroup>
+    </select>
+
+    <select name="id_agregado" class="input">
+      <option value="">Agregado (todos)</option>
+      {% for a in agregados %}
+        <option value="{{ a.id_agregado }}" {{ 'selected' if sel.get('id_agregado')==a.id_agregado|string }}>
+          {{ a.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <select name="id_ferramenta" class="input">
+      <option value="">Ferramenta (todas)</option>
+      {% for f in ferramentas %}
+        <option value="{{ f.id_ferramenta }}" {{ 'selected' if sel.get('id_ferramenta')==f.id_ferramenta|string }}>
+          {{ f.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <select name="id_usuario" class="input">
+      <option value="">Usuário (todos)</option>
+      {% for u in usuarios %}
+        <option value="{{ u.id_usuario }}" {{ 'selected' if sel.get('id_usuario')==u.id_usuario|string }}>
+          {{ u.nome }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <input class="input" type="text" name="emprestado_para" placeholder="Emprestado para (nome)" value="{{ sel.get('emprestado_para','') }}">
+    <input class="input" type="text" name="matricula"       placeholder="Matrícula"             value="{{ sel.get('matricula','') }}">
+
+    <button class="btn btn--primary" type="submit">Filtrar</button>
+    <a class="btn btn--primary" href="{{ url_for('relatorio_movimentacoes') }}">Limpar</a>
+
+    <div style="flex:1"></div>
+
+    {# Botão que submete o form oculto de exportação #}
+    <button class="btn btn--primary" type="submit" form="excelForm">Exportar Excel</button>
+  </form>
+
+  {# ---------- FORM OCULTO PARA EXPORTAR (mantém filtros) ---------- #}
+  <form id="excelForm" method="post" action="{{ url_for('exportar_movimentacoes_excel') }}" style="display:none;">
+    <input type="hidden" name="data_inicio"     value="{{ sel.get('data_inicio','') }}">
+    <input type="hidden" name="data_fim"        value="{{ sel.get('data_fim','') }}">
+    <input type="hidden" name="tipo"            value="{{ sel.get('tipo','') }}">
+    <input type="hidden" name="id_agregado"     value="{{ sel.get('id_agregado','') }}">
+    <input type="hidden" name="id_ferramenta"   value="{{ sel.get('id_ferramenta','') }}">
+    <input type="hidden" name="id_usuario"      value="{{ sel.get('id_usuario','') }}">
+    <input type="hidden" name="emprestado_para" value="{{ sel.get('emprestado_para','') }}">
+    <input type="hidden" name="matricula"       value="{{ sel.get('matricula','') }}">
+  </form>
+
+  {# ---------- TABELA ---------- #}
+  <div class="table-wrap" style="margin-top:10px;">
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:120px;">Data</th>
+          <th style="width:130px;">Tipo</th>
+          <th>Usuário</th>
+          <th>Agregado</th>
+          <th>Ferramenta</th>
+          <th>Emprestado para</th>
+          <th>Matrícula</th>
+          <th style="width:110px;">Quantidade</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if movimentacoes %}
+          {% for r in movimentacoes %}
+            <tr>
+              <td>
+                {% if r.data_mov %}
+                  {{ r.data_mov.strftime('%d/%m/%Y %H:%M') if r.data_mov.strftime is defined else r.data_mov }}
+                {% else %} — {% endif %}
+              </td>
+              <td>{{ r.tipo }}</td>
+              <td>{{ r.usuario or '—' }}</td>
+              <td>{{ r.agregado or '—' }}</td>
+              <td>{{ r.ferramenta or '—' }}</td>
+              <td>{{ r.emprestado_para or '—' }}</td>
+              <td>{{ r.matricula or '—' }}</td>
+              <td>{{ r.quantidade }}</td>
+              <td>{{ r.observacao or '—' }}</td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="9" class="empty">Nenhuma movimentação encontrada.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="toolbar" style="justify-content:flex-end; margin-top:12px;">
+    <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar</a>
+  </div>
+</section>
+{% endblock %}

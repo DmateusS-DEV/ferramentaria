@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Painel Inicial{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+  <!-- KPIs -->
+  <section class="kpis">
+    <article class="kpi">
+      <div class="kpi__label">Quantidade de Itens</div>
+      <div class="kpi__value">{{ kpi.qtd_itens or 0 }}</div>
+    </article>
+
+    <article class="kpi kpi--alert">
+      <div class="kpi__label">Itens abaixo do mínimo</div>
+      <div class="kpi__value">{{ kpi.abaixo_min or 0 }}</div>
+    </article>
+
+    <article class="kpi kpi--warn">
+      <div class="kpi__label">Itens acima do máximo</div>
+      <div class="kpi__value">{{ kpi.acima_max or 0 }}</div>
+    </article>
+
+    <a class="kpi kpi--info"
+       href="{{ url_for('baixa_rotatividade', dias=60) }}"
+       title="Ver itens com baixa rotatividade">
+      <div class="kpi__label">Baixa rotatividade</div>
+      <div class="kpi__value">{{ kpi.baixa_rot or 0 }}</div>
+    </a>
+  </section>
+
+  <!-- Gráfico: Saídas x Devoluções (mês atual) -->
+  <section class="card chart">
+    <header class="card__header">Saídas x Devoluções — Mês atual</header>
+    <div style="height:300px;padding:12px;">
+      <canvas id="chart-month" class="chart__canvas"></canvas>
+    </div>
+  </section>
+
+  <!-- Ações rápidas -->
+  <section class="actions">
+    <a href="{{ url_for('listar_agregados_tipos') }}" class="btn btn--primary">
+      <span class="btn__icon">🔧</span><span class="btn__text">Agregados</span>
+    </a>
+
+    <a href="{{ url_for('listar_ferramentas') }}" class="btn btn--primary">
+      <span class="btn__icon">🛠</span><span class="btn__text">Ferramentas</span>
+    </a>
+
+    <a href="{{ url_for('relatorio_movimentacoes') }}" class="btn btn--primary">
+      <span class="btn__icon">📊</span><span class="btn__text">Relatórios</span>
+    </a>
+
+    {% if current_user.perfil == 'admin' %}
+    <a href="{{ url_for('listar_usuarios') }}" class="btn btn--primary">
+      <span class="btn__icon">👤</span><span class="btn__text">Usuários</span>
+    </a>
+    {% endif %}
+
+    <a href="{{ url_for('logout') }}" class="btn btn--danger">
+      <span class="btn__icon">🚪</span><span class="btn__text">Sair</span>
+    </a>
+  </section>
+
+  <!-- Dados do gráfico em JSON (evita Jinja dentro do JS) -->
+  <script type="application/json" id="chart-data">
+    {{ {
+      "labels": labels or [],
+      "saidas": series.saidas or [],
+      "devolucoes": series.devolucoes or []
+    } | tojson }}
+  </script>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  var el = document.getElementById('chart-month');
+  if (!el) return;
+
+  // Lê o JSON gerado pelo Jinja sem misturar sintaxe no JS
+  var payload = {};
+  try {
+    payload = JSON.parse(document.getElementById('chart-data').textContent || '{}');
+  } catch (e) { payload = {}; }
+
+  var labels     = Array.isArray(payload.labels) ? payload.labels : [];
+  var saidas     = Array.isArray(payload.saidas) ? payload.saidas : [];
+  var devolucoes = Array.isArray(payload.devolucoes) ? payload.devolucoes : [];
+
+  var azul        = '#1f5f99', azulFill    = 'rgba(31,95,153,0.25)';
+  var laranja     = '#b7791f', laranjaFill = 'rgba(183,121,31,0.25)';
+
+  // define eixo Y com um respiro acima do maior valor
+  var maxY = 0;
+  for (var i = 0; i < saidas.length; i++)      if (saidas[i] > maxY) maxY = saidas[i];
+  for (var j = 0; j < devolucoes.length; j++)  if (devolucoes[j] > maxY) maxY = devolucoes[j];
+  var yMax = Math.max(5, maxY + 1);
+
+  new Chart(el, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [
+        { label: 'Saídas',     data: saidas,     borderColor: laranja, backgroundColor: laranjaFill, borderWidth: 2 },
+        { label: 'Devoluções', data: devolucoes, borderColor: azul,    backgroundColor: azulFill,    borderWidth: 2 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { title: { display: true, text: 'Dia do mês' } },
+        y: {
+          beginAtZero: true,
+          suggestedMax: yMax,
+          ticks: { stepSize: 1 },
+          title: { display: true, text: 'Quantidade' }
+        }
+      },
+      plugins: { legend: { labels: { boxWidth: 12 } } }
+    }
+  });
+})();
+</script>
+{% endblock %}

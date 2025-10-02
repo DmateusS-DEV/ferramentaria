@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Pergunta de segurança{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<section class="edit-shell">
+  <header class="edit-header">
+    <h1 class="page-title" style="text-align:center;">PERGUNTA DE SEGURANÇA</h1>
+    <p class="page-subtitle" style="text-align:center;">
+      Defina uma pergunta e resposta. Você poderá usá-las para recuperar sua senha.
+    </p>
+  </header>
+
+  <form class="edit-form center-narrow" method="post">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="pergunta">Pergunta</label>
+        <select id="pergunta" name="pergunta" class="input" required>
+          <option value="">-- Selecione --</option>
+          {% for p in perguntas %}
+            <option value="{{ p }}" {{ "selected" if pergunta_atual==p else "" }}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="resposta">Resposta</label>
+        <input id="resposta" name="resposta" class="input" placeholder="Digite sua resposta" required>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar</a>
+      <button class="btn btn--primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}

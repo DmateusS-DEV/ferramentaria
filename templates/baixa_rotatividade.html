@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Baixa Rotatividade — Agregados{% endblock %}
+{% block body_class %}page--agregados{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <header class="page-head center-narrow" style="margin-top:12px;">
+    <h1 class="page-title" style="text-align:center;">BAIXA ROTATIVIDADE — AGREGADOS</h1>
+    <div class="page-subtitle" style="text-align:center;">
+      Itens sem movimentação há <strong>{{ dias }}</strong> dias ou nunca movimentados.
+    </div>
+  </header>
+
+  <form class="filters center-narrow" method="get" action="{{ url_for('baixa_rotatividade') }}">
+    <input class="input" type="search" name="q" value="{{ q or '' }}" placeholder="Buscar por TAG / descrição / aplicação">
+    <input class="input" style="width:140px;text-align:center;" type="number" name="dias" min="1" value="{{ dias }}" title="Dias sem movimentar">
+    <button class="btn btn--primary" type="submit">Filtrar</button>
+    <a class="btn" href="{{ url_for('baixa_rotatividade') }}">Limpar</a>
+
+    <a class="btn btn--primary"
+       href="{{ url_for('baixa_rotatividade_excel', q=q, dias=dias) }}">Exportar Excel</a>
+  </form>
+
+  <div class="table-wrap card-surface center-narrow">
+    <table class="table items-table">
+      <thead>
+        <tr>
+          <th style="width:110px;">TAG</th>
+          <th>Descrição</th>
+          <th>Aplicação</th>
+          <th style="width:120px;">Status</th>
+          <th>Localização</th>
+          <th>Aplicado em</th>
+          <th style="width:160px;">Última mov.</th>
+          <th style="width:140px;">Dias sem mov.</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if rows %}
+          {% for r in rows %}
+            <tr>
+              <td>{{ r.tag or "—" }}</td>
+              <td>{{ r.nome }}</td>
+              <td>{{ r.aplicacao or "—" }}</td>
+              <td>
+                <span class="badge
+                  {% if r.status == 'Disponível' %}badge--ok
+                  {% elif r.status == 'Aplicado' %}badge--info
+                  {% elif r.status == 'Em reforma' %}badge--warn
+                  {% else %}badge--muted{% endif %}">
+                  {{ r.status or "—" }}
+                </span>
+              </td>
+              <td>{{ r.localizacao or "—" }}</td>
+              <td>{{ r.aplicado_em or "—" }}</td>
+              <td>{{ r.ultima_mov_fmt or "—" }}</td>
+              <td style="text-align:center;">
+                {{ r.dias_sem_mov if r.dias_sem_mov is not none else "—" }}
+              </td>
+            </tr>
+          {% endfor %}
+        {% else %}
+          <tr><td colspan="8" class="empty">Nenhum item encontrado para o critério.</td></tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="center-narrow" style="display:flex;justify-content:flex-end;margin-top:16px;">
+    <a class="btn btn--outline" href="{{ url_for('index') }}">← Voltar ao painel</a>
+  </div>
+
+</div>
+{% endblock %}

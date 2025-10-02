@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Registrar movimentação{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+
+{# ===== Labels quando for FERRAMENTA ===== #}
+{% if is_tool %}
+  {% set tipo_tools = ('devolucao_ferramenta' if tipo in ['devolucao','devolucao_ferramenta'] else 'emprestimo') %}
+  {% set is_emp = (tipo_tools == 'emprestimo') %}
+  {% set pessoa_label = 'Emprestado para' if is_emp else 'Devolvido por' %}
+  {% set pessoa_ph    = 'Nome de quem pegou' if is_emp else 'Quem devolveu' %}
+{% endif %}
+
+<header class="hero-title" style="text-align:center; margin: 0 auto 28px;">
+  <h1 style="color:var(--azul); font-weight:800; letter-spacing:.2px; margin:0;">
+    {% if is_tool %}
+      {% if tipo_tools == 'devolucao_ferramenta' %}DEVOLUÇÃO DE FERRAMENTAS{% else %}EMPRÉSTIMO DE FERRAMENTAS{% endif %}
+    {% else %}
+      REGISTRAR MOVIMENTAÇÃO
+    {% endif %}
+  </h1>
+</header>
+
+<section class="mv-shell card-surface">
+  <form method="post" action="{{ url_for('nova_movimentacao') }}">
+    {# data-is-devolucao = "1" apenas quando for agregados + devolução #}
+    <div class="mv-grid" id="mv-grid" data-is-devolucao="{{ (not is_tool and tipo=='devolucao')|int }}">
+
+      {# =================== LINHA DO TOPO =================== #}
+      <div class="mv-row">
+        {% if is_tool %}
+          <input type="hidden" name="is_tool" value="1">
+
+          <div class="mv-field">
+            <label for="tipo_display">Tipo</label>
+            <select id="tipo_display" class="input mv-input" disabled>
+              <option value="emprestimo" {{ 'selected' if tipo_tools=='emprestimo' }}>Empréstimo</option>
+              <option value="devolucao_ferramenta" {{ 'selected' if tipo_tools=='devolucao_ferramenta' }}>Devolução</option>
+            </select>
+            <input type="hidden" name="tipo" value="{{ tipo_tools }}">
+          </div>
+
+          <div class="mv-field">
+            <label for="id_ferramenta">Ferramenta</label>
+            <select id="id_ferramenta" class="input mv-input" name="id_ferramenta" required>
+              <option value="">-- Selecione --</option>
+              {% for f in ferramentas %}
+                <option value="{{ f.id_ferramenta }}" {{ 'selected' if id_ferramenta|string==f.id_ferramenta|string }}>{{ f.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mv-field">
+            <label for="responsavel">{{ pessoa_label }}</label>
+            <input id="responsavel" class="input mv-input" name="emprestado_para" placeholder="{{ pessoa_ph }}" {% if is_emp %}required{% endif %}>
+          </div>
+
+          <div class="mv-field">
+            <label for="matricula">Matrícula</label>
+            <input id="matricula" class="input mv-input" name="matricula" placeholder="Matrícula/ID" {% if is_emp %}required{% endif %}>
+          </div>
+
+        {% else %}
+          <div class="mv-field">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" class="input mv-input" name="tipo">
+              <option value="saida"      {{ 'selected' if tipo=='saida' }}>Saída</option>
+              <option value="devolucao"  {{ 'selected' if tipo=='devolucao' }}>Devolução</option>
+              <option value="reforma"    {{ 'selected' if tipo=='reforma' }}>Reforma</option>
+            </select>
+          </div>
+
+          <div class="mv-field">
+            <label for="id_agregado">Agregado</label>
+            <select id="id_agregado" class="input mv-input" name="id_agregado" required>
+              <option value="">-- Selecione --</option>
+              {% for a in agregados %}
+                <option value="{{ a.id_agregado }}" {{ 'selected' if id_agregado|string==a.id_agregado|string }}>{{ a.nome }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="mv-field">
+            <label for="aplicado_em">Aplicado em (Frota)</label>
+            <input id="aplicado_em"
+                   class="input mv-input input--center-ph {% if tipo=='devolucao' %}is-readonly{% endif %}"
+                   name="aplicado_em"
+                   placeholder="Ex.: Frota / Máquina"
+                   {% if tipo=='devolucao' %}value="{{ aplicado_em_prefill or '' }}" readonly{% endif %}>
+          </div>
+
+          {# Quantidade fixa (itens são únicos por TAG) #}
+          <input type="hidden" name="quantidade" value="1">
+        {% endif %}
+      </div>
+
+      {# =================== OBSERVAÇÃO =================== #}
+      <div class="mv-field mv-observacao">
+        <label for="observacao">Observação</label>
+        <textarea id="observacao" class="input mv-input" name="observacao" rows="4"></textarea>
+      </div>
+
+      {# =================== AÇÕES =================== #}
+      {% if is_tool %}
+        {% set back_url = request.args.get('next') or request.referrer or url_for('listar_ferramentas') %}
+      {% else %}
+        {% if g_nome %}
+          {% set back_url = url_for('listar_agregados_itens', nome=g_nome, aplicacao=g_aplicacao) %}
+        {% else %}
+          {% set back_url = request.args.get('next') or request.referrer or url_for('listar_agregados_tipos') %}
+        {% endif %}
+      {% endif %}
+
+      <div class="mv-actions">
+        <a class="btn btn--outline" href="{{ back_url }}">← Voltar</a>
+        <button class="btn btn--primary" type="submit">Salvar</button>
+      </div>
+
+    </div>
+  </form>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var grid       = document.getElementById('mv-grid');
+  if (!grid) return;
+
+  var isDevolucao = (grid.dataset.isDevolucao === '1');  // agregados + devolução
+  var aggSel      = document.getElementById('id_agregado');
+  var aplicado    = document.getElementById('aplicado_em');
+
+  function fetchAplicadoEm(id){
+    if(!id || !aplicado) return;
+    fetch('/api/agregados/' + id + '/aplicado-em')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        aplicado.value   = d.aplicado_em || '';
+        aplicado.readOnly = true;
+        aplicado.classList.add('is-readonly');
+      })
+      .catch(function(){ /* silencioso */ });
+  }
+
+  if (isDevolucao && aggSel){
+    // Prefill caso já venha selecionado por querystring
+    if (aggSel.value) fetchAplicadoEm(aggSel.value);
+    aggSel.addEventListener('change', function(e){
+      fetchAplicadoEm(e.target.value);
+    });
+  }
+});
+</script>
+{% endblock %}

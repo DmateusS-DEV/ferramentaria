@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Recuperar senha{% endblock %}
+{% block body_class %}page--login{% endblock %}
+
+{% block content %}
+<section class="edit-shell" style="width:100%;">
+
+  {% if step == 1 %}
+    <form class="auth-card white" method="post" style="max-width:420px;">
+      <h2 class="page-title" style="text-align:center;margin:0 0 6px;">Recuperar senha</h2>
+      <p class="build-note" style="margin-bottom:14px;">Informe seu e-mail para continuar.</p>
+
+      <input type="hidden" name="step" value="2">
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" required>
+
+      <button class="btn-gradient" type="submit">Continuar</button>
+      <div class="build-note" style="margin-top:10px;"><a href="{{ url_for('login') }}">Voltar ao login</a></div>
+    </form>
+
+  {% elif step == 2 %}
+    <form class="auth-card white" method="post" style="max-width:420px;">
+      <h2 class="page-title" style="text-align:center;margin:0 0 6px;">Responda a pergunta</h2>
+      <p class="build-note" style="margin-bottom:14px;">Se acertar, você poderá criar uma nova senha.</p>
+
+      <input type="hidden" name="step" value="3">
+      <label>Pergunta</label>
+      <div class="input" style="background:#f7f9fc;">{{ pergunta }}</div>
+
+      <label for="resposta" style="margin-top:10px;">Resposta</label>
+      <input id="resposta" name="resposta" required>
+
+      <label for="nova_senha" style="margin-top:12px;">Nova senha</label>
+      <input id="nova_senha" name="nova_senha" type="password" required>
+
+      <label for="confirma_senha" style="margin-top:12px;">Confirmar nova senha</label>
+      <input id="confirma_senha" name="confirma_senha" type="password" required>
+
+      <button class="btn-gradient" type="submit" style="margin-top:14px;">Salvar nova senha</button>
+      <div class="build-note" style="margin-top:10px;"><a href="{{ url_for('login') }}">Cancelar</a></div>
+    </form>
+  {% endif %}
+
+</section>
+{% endblock %}

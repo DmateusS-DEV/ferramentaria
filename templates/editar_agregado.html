@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Editar Agregado{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<section class="edit-shell">
+  <header class="edit-header">
+    <h1 class="page-title" style="text-align:center;">EDITAR AGREGADO</h1>
+    <div class="page-subtitle" style="text-align:center;">Atualize as informações do item.</div>
+  </header>
+
+  <form class="edit-form center-narrow" method="post" action="{{ url_for('editar_agregado', id_agregado=agregado.id_agregado) }}">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="tag">Tag</label>
+        <input id="tag" name="tag" class="input" value="{{ agregado.tag }}" required>
+      </div>
+
+      <div class="form-field">
+        <label for="nome">Nome</label>
+        <input id="nome" name="nome" class="input" value="{{ agregado.nome }}" required>
+      </div>
+
+      <div class="form-field">
+        <label for="aplicacao">Aplicação</label>
+        <input id="aplicacao" name="aplicacao" class="input" value="{{ agregado.aplicacao or '' }}">
+      </div>
+
+      <div class="form-field">
+        <label for="localizacao">Localização</label>
+        <input id="localizacao" name="localizacao" class="input" value="{{ agregado.localizacao or '' }}">
+      </div>
+
+      <div class="form-field">
+        <label for="status">Status</label>
+        <select id="status" name="status" class="input">
+          {% set s = agregado.status %}
+          <option value="Disponível" {{ 'selected' if s=='Disponível' }}>Disponível</option>
+          <option value="Aplicado" {{ 'selected' if s=='Aplicado' }}>Aplicado</option>
+          <option value="Em reforma" {{ 'selected' if s=='Em reforma' }}>Em reforma</option>
+          <option value="Descartado" {{ 'selected' if s=='Descartado' }}>Descartado</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="aplicado_em">Aplicado em</label>
+        <input id="aplicado_em" name="aplicado_em" class="input" value="{{ agregado.aplicado_em or '' }}">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--outline" href="{{ url_for('listar_agregados_tipos') }}">← Voltar</a>
+      <button class="btn btn--primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const st = document.getElementById('status');
+  const ap = document.getElementById('aplicado_em');
+  function toggleAplicado(){ ap.disabled = (st.value !== 'Aplicado'); }
+  toggleAplicado();
+  st.addEventListener('change', toggleAplicado);
+</script>
+{% endblock %}

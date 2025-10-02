@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Nova Ferramenta{% endblock %}
+{% block body_class %}page--dashboard{% endblock %}
+
+{% block content %}
+<section class="edit-shell">
+  <header class="edit-header">
+    <h1 class="page-title" style="text-align:center;">NOVA FERRAMENTA</h1>
+    <div class="page-subtitle" style="text-align:center;">Cadastre uma ferramenta no estoque.</div>
+  </header>
+
+  <form class="edit-form center-narrow" method="post" action="{{ url_for('nova_ferramenta') }}">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="nome">Nome</label>
+        <input id="nome" name="nome" class="input" required>
+      </div>
+
+      <div class="form-field">
+        <label for="endereco_estoque">Endereço de estoque</label>
+        <input id="endereco_estoque" name="endereco_estoque" class="input">
+      </div>
+
+      <div class="form-field">
+        <label for="status">Status</label>
+        <select id="status" name="status" class="input">
+          <option value="Disponível" selected>Disponível</option>
+          <option value="Emprestada">Emprestada</option>
+          <option value="Calibração">Calibração</option>
+          <option value="Descartada">Descartada</option>
+        </select>
+      </div>
+
+      <div class="form-field">
+        <label for="especial" style="display:flex;align-items:center;gap:8px;">
+          <input id="especial" type="checkbox" name="especial"> Ferramenta especial
+        </label>
+      </div>
+
+      <div class="form-field">
+        <label for="estoque_min">Estoque mínimo</label>
+        <input id="estoque_min" name="estoque_min" type="number" min="0" class="input" value="0">
+      </div>
+
+      <div class="form-field">
+        <label for="estoque_max">Estoque máximo</label>
+        <input id="estoque_max" name="estoque_max" type="number" min="0" class="input" value="9999">
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <a class="btn btn--outline" href="{{ url_for('listar_ferramentas') }}">← Voltar</a>
+      <button class="btn btn--primary" type="submit">Salvar</button>
+    </div>
+  </form>
+</section>
+{% endblock %}
