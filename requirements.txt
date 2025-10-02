@@ -19,3 +19,5 @@ flask-debugtoolbar
 
 # (Opcional) Requisições HTTP
 requests
+
+gunicorn
