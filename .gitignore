@@ -1,0 +1,21 @@
+# venv / cache / IDE
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.idea/
+.vscode/
+.DS_Store
+
+# artefatos
+*.log
+*.sqlite3
+*.db
+
+# node (se houver)
+node_modules/
+
+# segredos locais
+.env
